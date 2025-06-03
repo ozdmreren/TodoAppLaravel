@@ -22,9 +22,11 @@
                 <h1 class="text-xl"><strong class="select-none underline-offset-2 hover:underline "> TODO APP WITH LARAVEL</strong></h1>
             </div>
 
-            <form action="">
+            <form action="/add" method="POST">
+                @csrf
+                @method("POST")
                 <div class="bg-white rounded-2xl flex items-center justify-center">
-                    <input class="w-full rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-gray-500" type="text" required placeholder="Add your task">
+                    <input class="w-full rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-gray-500" type="text" required placeholder="Add your task" name="task">
                     <div class="p-0.5 rounded-2xl bg-green-500 hover:bg-green-600 duration-300">
                         <button class="cursor-pointer">
                             <span class="material-symbols-outlined p-2">add_circle</span>
@@ -41,17 +43,31 @@
                     </div>
                     <div>
                         <!-- FOREACH LOOP -->
-                        <div class="p-3 bg-white flex items-center  space-x-2 rounded-md">
+                        @foreach ($tasks as $task)
+                        <div id="taskField-{{$task->id}}" class="p-3 bg-white space-x-2 rounded-md mb-3">
+                            <div class="flex space-x-2 justify-between items-center">
                             <p 
-                            id="task"
+                            id="taskItem-{{$task->id}}"
                             class="cursor-pointer  font-medium px-1 rounded-md select-none "
-                            onclick="lineThrough()">MESSAGEMESSAGEMESSAGEMESSAGEMESSAGE</p>
-                            <div class="flex space-x-2 justify-center items-center">
-                                <div class="flex"><span class="material-symbols-outlined">schedule</span> Tue Oct 17 2023</div>
-                                <span class="material-symbols-outlined cursor-pointer rounded-md  hover:bg-green-500 duration-300">edit</span>
-                                <span class="material-symbols-outlined cursor-pointer rounded-md  hover:bg-red-500 duration-300">delete</span>
+                            onclick="lineThrough({{$task->id}})">{{$task->message}}</p>
+                            <input id="taskEditBox-{{$task->id}}" type="text" class="font-semibold p-1 rounded-md hidden" placeholder="{{$task->message}}">
+                                <div class="flex">
+                                    <span class="material-symbols-outlined">schedule</span> 
+                                    <p>{{$task->updated_at}}</p>
+                                </div>
+                                <div>
+                                    <button onclick="deleteTask({{$task->id}})">
+                                    <span class="material-symbols-outlined cursor-pointer rounded-md hover:bg-red-500 duration-300">delete</span>
+                                    </button>
+
+                                    <button onclick="enableEditBox({{$task->id}})" >
+                                        <span class="material-symbols-outlined cursor-pointer rounded-md hover:bg-green-500 duration-300">edit</span>
+                                    </button>
+                                </div>
+                                
                             </div>
-                        </div>
+                        </div>    
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -60,9 +76,58 @@
 
     <script>
 
-        function lineThrough(){
-            const task = document.getElementById("task")
+        function lineThrough(taskID){
+            const task = document.getElementById(`taskItem-${taskID}`)
             task.classList.toggle("line-through")
+        }
+
+        function deleteTask(taskID){
+            console.log("sa")
+            fetch('/delete',{
+                method:"DELETE",
+                headers:{
+                    'Content-Type':"application/json",
+                    "X-CSRF-Token":"{{csrf_token()}}"
+                },
+                body:JSON.stringify({"taskID":taskID})
+            }).then((response)=>{
+                if(response.ok){
+                    document.getElementById(`taskField-${taskID}`).remove()
+                }
+            }).catch((err)=>console.log(err))
+        }
+
+        function enableEditBox(taskID){
+            const editBox = document.getElementById(`taskEditBox-${taskID}`)
+            const taskItem = document.getElementById(`taskItem-${taskID}`)
+            editBox.classList.remove("hidden")
+            taskItem.classList.add("hidden")
+
+            editBox.focus()
+
+            editBox.addEventListener("keydown",function(e){
+                if(e.key == "Enter"){
+                    const message = editBox.value
+                    updateTask(taskID,message)
+                }
+            })
+
+            function updateTask(taskID,newMessage){
+                fetch("/edit",{
+                    method:"PUT",
+                    headers:{
+                    'Content-Type':"application/json",
+                    "X-CSRF-Token":"{{csrf_token()}}"
+                },
+                body:JSON.stringify({"taskID":taskID,"newMessage":newMessage})
+                }).then((response)=>{
+                    if(response.ok){
+                        taskItem.textContent = newMessage
+                        editBox.classList.add("hidden")
+                        taskItem.classList.remove("hidden")
+                    }
+                })
+            }
         }
     </script>
 </body>

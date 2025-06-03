@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('message');
             $table->boolean('isLined');
+            $table->timestamps();
         });
     }
 
