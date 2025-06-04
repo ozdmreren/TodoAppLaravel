@@ -25,26 +25,51 @@ class ToDoController extends Controller
     public function edit(Request $request){
         $taskId = $request->input('taskID');
 
-        $isExisting = ToDoItem::where("id","=",$taskId)->first();
+        $isExisting = $this->isExisting($taskId);
 
         if($isExisting){
             $isExisting->update([
                 "message"=>$request->input("newMessage")
             ]);
+        }else{
+        return response()->json(['success'=>false]);    
         }
 
         return response()->json(['success'=>true]);
     }
+    public function taskline(Request $request){
+        $taskId = $request->input('taskID');
+
+        $isExisting = $this->isExisting($taskId);
+
+        if($isExisting){
+            $isExisting->update([
+                "isLined"=>$request->input("lined")
+            ]);
+        }else{
+            return response()->json(["success"=>false]);
+        }
+        return response()->json(["success"=>true]);
+    }
     public function delete(Request $request){
         $taskId = $request->input("taskID");
         
-        $isExisting = ToDoItem::where("id","=",$taskId)->first();
+        $isExisting = $this->isExisting($taskId);
 
         if($isExisting){
             $isExisting->delete();
+        }else{
+        return response()->json(["success"=>false]);    
         }
 
         return response()->json(["success"=>true]);
+    }
+
+
+    public function isExisting($taskID){
+        $isExisting = ToDoItem::where("id","=",$taskID)->first();
+        
+        return $isExisting;
     }
 
 }

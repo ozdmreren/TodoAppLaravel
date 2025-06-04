@@ -48,7 +48,7 @@
                             <div class="flex space-x-2 justify-between items-center">
                             <p 
                             id="taskItem-{{$task->id}}"
-                            class="cursor-pointer  font-medium px-1 rounded-md select-none "
+                            class="{{$task->isLined ? "line-through" : ""}} cursor-pointer  font-medium px-1 rounded-md select-none "
                             onclick="lineThrough({{$task->id}})">{{$task->message}}</p>
                             <input id="taskEditBox-{{$task->id}}" type="text" class="font-semibold p-1 rounded-md hidden" placeholder="{{$task->message}}">
                                 <div class="flex">
@@ -79,6 +79,16 @@
         function lineThrough(taskID){
             const task = document.getElementById(`taskItem-${taskID}`)
             task.classList.toggle("line-through")
+            const isLined = task.classList.contains("line-through")
+
+            fetch("/edit-lined",{
+                method:"PUT",
+                headers:{
+                    'Content-Type':"application/json",
+                    "X-CSRF-Token":"{{csrf_token()}}"
+                },
+                body:JSON.stringify({"taskID":taskID,"lined":isLined})
+            }).catch((err)=>console.err(err))
         }
 
         function deleteTask(taskID){
@@ -100,8 +110,8 @@
         function enableEditBox(taskID){
             const editBox = document.getElementById(`taskEditBox-${taskID}`)
             const taskItem = document.getElementById(`taskItem-${taskID}`)
-            editBox.classList.remove("hidden")
-            taskItem.classList.add("hidden")
+            editBox.classList.toggle("hidden")
+            taskItem.classList.toggle("hidden")
 
             editBox.focus()
 
