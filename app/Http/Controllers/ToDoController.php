@@ -65,6 +65,11 @@ class ToDoController extends Controller
         return response()->json(["success"=>true]);
     }
 
+    public function deleteAll(Request $request){
+        ToDoItem::truncate();
+
+        return response()->json(['success'=>true]);
+    }
 
     public function isExisting($taskID){
         $isExisting = ToDoItem::where("id","=",$taskID)->first();

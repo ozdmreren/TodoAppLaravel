@@ -49,6 +49,10 @@
                     </div>
                 </div>
             </div>
+            <div class="flex justify-between items-center space-x-2">
+                <p id="task-count">You have {{count($tasks)}} tasks</p>
+                <button onclick="deleteAllTask()"  class="bg-purple-500 p-2 rounded-lg text-white hover:bg-purple-600 duration-300 cursor-pointer">Clear All</button>
+            </div>
         </div>
     </div>
 
@@ -81,6 +85,22 @@
             }).then((response)=>{
                 if(response.ok){
                     document.getElementById(`taskField-${taskID}`).remove()
+                    document.getElementById("task-count").textContent =`You have ${document.querySelectorAll('[id*="taskField-"]').length} tasks`
+                }
+            }).catch((err)=>console.log(err))
+        }
+
+        function deleteAllTask(){
+            fetch('/delete-all',{
+                method:"DELETE",
+                headers:{
+                    'Content-Type':"application/json",
+                    "X-CSRF-Token":"{{csrf_token()}}"
+                },
+            }).then((response)=>{
+                if(response.ok){
+                    document.querySelectorAll("id[taskField-]").forEach((element)=>element.remove())
+                    location.reload()
                 }
             }).catch((err)=>console.log(err))
         }
